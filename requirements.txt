@@ -1,0 +1,35 @@
+# Core
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+python-dotenv>=1.0.0
+
+# LLM APIs
+google-generativeai>=0.3.2
+replicate>=0.22.0
+
+# RAG & Embeddings
+langchain>=0.1.0
+qdrant-client>=1.7.1  # Use 1.7.1+ for Python 3.13 support
+sentence-transformers>=2.2.2
+
+# Evaluation
+ragas==0.1.4
+accelerate>=0.26.0
+peft>=0.7.0
+datasets>=2.15.0
+
+# Frontend
+streamlit>=1.29.0
+
+# Data Processing
+pandas>=2.1.4
+numpy>=1.26.2
+
+# Visualization
+matplotlib>=3.8.2
+seaborn>=0.13.0
+
+# Utilities
+requests>=2.31.0
+tqdm>=4.66.1
