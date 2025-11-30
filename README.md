@@ -11,6 +11,7 @@
 **Key Innovations:**
 *   **Multi-Model Comparison**: Evaluates 4 state-of-the-art LLMs (Gemini 1.5, Llama 3, BioMistral, Meditron) for medical accuracy.
 *   **"Verify First" Risk Engine**: A novel "Prompt Injection" architecture that forces the AI to verify patient vitals against normal ranges before generating a diagnosis.
+*   **Hybrid Symptom Checker**: Combines fine-tuned local models with GPT-4o for high-accuracy diagnosis and human-like explanations.
 *   **Dual-RAG Pipeline**: Combines local vector search (Qdrant) with cloud-based inference (Hugging Face Spaces & Replicate).
 
 ---
@@ -18,6 +19,33 @@
 ## 🏗️ System Architecture
 
 The application is built on a **FastAPI** backend and a **Streamlit** frontend, orchestrated by a central `ModelManager`.
+
+> 📘 **Detailed Documentation**: For a deep dive into the technical design of each module, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
+### High-Level Architecture
+
+```mermaid
+graph TD
+    User[User Interaction] --> Frontend[Streamlit Frontend]
+    Frontend -->|HTTP Requests| Backend[FastAPI Backend]
+    
+    subgraph Core Modules
+        Backend -->|/chat| Mod1[Module 1: Chatbot]
+        Backend -->|/risk_predict| Mod2[Module 2: Risk Analysis]
+        Backend -->|/symptom_predict| Mod3[Module 3: Symptom Checker]
+    end
+    
+    subgraph Data & Models
+        Mod1 -->|RAG| Qdrant[Qdrant Vector DB]
+        Mod1 -->|Inference| LLMs[Llama 3 / BioMistral]
+        
+        Mod2 -->|Context| Qdrant
+        Mod2 -->|Inference| HF_Space1[HF Space: Risk Model]
+        
+        Mod3 -->|Inference| HF_Space2[HF Space: Symptom Model]
+        Mod3 -->|Explanation| GPT4[GPT-4o]
+    end
+```
 
 ### Module 1: Medical Q&A Chatbot
 *Goal: Provide accurate, sourced answers to medical questions.*
@@ -52,23 +80,24 @@ To eliminate hallucinations (e.g., the model inventing a high heart rate), we by
 2.  **Compare** them to normal ranges (e.g., "HR 80 is normal").
 3.  **Conclude** the risk level based on verified data.
 
+### Module 3: Symptom Diagnosis & Checker
+*Goal: Predict disease from symptoms and provide medical explanation.*
+
+```mermaid
+graph LR
+    A[User Symptoms] --> B(Backend API)
+    B --> C{BioMistral-7B (Fine-Tuned)}
+    C -->|Predicted Diagnosis| D[GPT-4o]
+    D -->|Generate Explanation| E[Final Output]
+    E --> F[Frontend UI]
+```
+
+**Hybrid Pipeline:**
+*   **Phase 1 (Classification)**: Uses a fine-tuned BioMistral-7B model to classify symptoms into one of 10 common conditions (99.1% accuracy).
+*   **Phase 2 (Explanation)**: Uses GPT-4o to generate a clear, patient-friendly explanation of *why* those symptoms led to that diagnosis.
+
 ---
 
-## 🧪 Model Evaluation (RAGAS Framework)
-
-We conducted a rigorous evaluation of 4 models using the **RAGAS** framework to assess Faithfulness, Answer Relevancy, and Correctness.
-
-| Model | Faithfulness | Relevancy | Correctness | Similarity | Verdict |
-|-------|--------------|-----------|-------------|------------|---------|
-| **Llama 3 (8B)** | **0.22** | **0.85** | **0.52** | **0.77** | 🏆 **Winner** |
-| BioMistral 7B | 0.06 | 0.86 | 0.66 | 0.76 | 🥈 Runner Up |
-| Meditron 7B | 0.35 | 0.84 | 0.55 | 0.74 | Specialized |
-| Gemini 1.5 | 0.03 | 0.00 | 0.56 | 0.72 | Baseline |
-
-*   **Llama 3** demonstrated the best balance of adhering to the context and providing relevant answers.
-*   **BioMistral** showed strong medical reasoning capabilities, making it ideal for the Risk Analysis module.
-
----
 
 ## 🚀 Getting Started
 
@@ -150,5 +179,3 @@ AI Healthcare Agent/
 It is **NOT** a medical device and should **NOT** be used for diagnosis or treatment. The "Risk Analysis" feature is a demonstration of AI capabilities and does not replace professional medical judgment. Always consult a qualified healthcare provider for medical advice.
 
 ---
-
-*Presented on December 6, 2024*

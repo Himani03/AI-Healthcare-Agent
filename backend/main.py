@@ -14,6 +14,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from modules.shared.models import ModelManager
 from rag.retriever import RAGRetriever
 from backend.risk_predictor import get_risk_predictor
+from backend.symptom_predictor import get_symptom_predictor
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -35,11 +36,12 @@ app.add_middleware(
 model_manager = None
 rag_retriever = None
 risk_predictor = None
+symptom_predictor = None
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize models and RAG on startup"""
-    global model_manager, rag_retriever, risk_predictor
+    global model_manager, rag_retriever, risk_predictor, symptom_predictor
     
     print("🚀 Starting AI Healthcare Agent API...")
     model_manager = ModelManager()
@@ -51,6 +53,13 @@ async def startup_event():
         print("✅ Risk Predictor ready!")
     except Exception as e:
         print(f"⚠️ Risk Predictor failed to load: {e}")
+
+    # Initialize Symptom Predictor
+    try:
+        symptom_predictor = get_symptom_predictor()
+        print("✅ Symptom Predictor ready!")
+    except Exception as e:
+        print(f"⚠️ Symptom Predictor failed to load: {e}")
         
     print("✅ API ready!")
 
@@ -166,30 +175,35 @@ async def chat(request: ChatRequest):
         error=result.get('error', False)
     )
 
-@app.post("/risk_predict", response_model=RiskResponse)
-async def risk_predict(request: RiskRequest):
+@app.post("/risk_predict")
+async def predict_risk(request: RiskRequest):
     """
     Risk prediction endpoint
     """
     if not risk_predictor:
         raise HTTPException(status_code=503, detail="Risk Predictor not available")
-    
     try:
         result = risk_predictor.predict(request.complaint, request.vitals)
-        return RiskResponse(
-            risk=result['risk'],
-            reasoning=result['reasoning'],
-            tests=result['tests'],
-            similar_cases=result.get('similar_cases', [])
-        )
+        return result
     except Exception as e:
-        return RiskResponse(
-            risk="Error",
-            reasoning=str(e),
-            tests=[],
-            similar_cases=[],
-            error=True
-        )
+        raise HTTPException(status_code=500, detail=str(e))
+
+class SymptomRequest(BaseModel):
+    symptoms: str
+
+@app.post("/symptom_predict")
+async def predict_symptoms(request: SymptomRequest):
+    """
+    Symptom prediction endpoint
+    """
+    try:
+        # Note: This will fail if the HF Space is paused
+        result = symptom_predictor.predict(request.symptoms)
+        if "error" in result:
+             raise HTTPException(status_code=500, detail=result["error"])
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Run with: uvicorn backend.main:app --reload
 if __name__ == "__main__":

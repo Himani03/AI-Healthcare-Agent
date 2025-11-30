@@ -33,6 +33,11 @@ st.markdown("""
         text-align: center;
         transition: transform 0.2s;
         height: 100%;
+        min-height: 350px; /* Enforce equal height */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
     }
     .card:hover {
         transform: translateY(-5px);
@@ -52,15 +57,19 @@ st.markdown("""
     .card-desc {
         color: #7f8c8d;
         margin-bottom: 2rem;
+        font-size: 1rem;
+        line-height: 1.5;
     }
     .stButton>button {
         width: 100%;
         background-color: #1f77b4;
         color: white;
         border: none;
-        padding: 0.5rem 1rem;
+        padding: 0.6rem 1rem;
         border-radius: 5px;
         font-weight: 600;
+        font-size: 1.1rem;
+        margin-top: auto; /* Push to bottom */
     }
     .stButton>button:hover {
         background-color: #155a8a;
@@ -69,20 +78,22 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Header
-st.markdown('<h1 class="main-header">🏥 AI Healthcare Agent</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-header">🏥 GenMedX</h1>', unsafe_allow_html=True)
 st.markdown('<p class="sub-header">Advanced Medical AI for Diagnosis & Risk Prediction</p>', unsafe_allow_html=True)
 
 # Navigation Cards
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 
 with col1:
     st.markdown("""
     <div class="card">
-        <div class="icon">💬</div>
-        <div class="card-title">Medical Chatbot</div>
-        <div class="card-desc">
-            Interactive Q&A with 4 state-of-the-art LLMs (Llama 3, BioMistral, etc.) 
-            enhanced by RAG for accurate medical information.
+        <div>
+            <div class="icon">💬</div>
+            <div class="card-title">Medical Chatbot</div>
+            <div class="card-desc">
+                Interactive Q&A with 4 state-of-the-art LLMs (Llama 3, BioMistral, etc.) 
+                enhanced by RAG for accurate medical information.
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -93,17 +104,36 @@ with col1:
 with col2:
     st.markdown("""
     <div class="card">
-        <div class="icon">🩺</div>
-        <div class="card-title">Risk Analysis</div>
-        <div class="card-desc">
-            AI-powered triage and risk prediction using BioMistral-7B. 
-            Get clinical reasoning and test recommendations.
+        <div>
+            <div class="icon">🩺</div>
+            <div class="card-title">Risk Analysis</div>
+            <div class="card-desc">
+                AI-powered triage and risk prediction using BioMistral-7B. 
+                Get clinical reasoning and test recommendations.
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
     
     if st.button("Start Analysis ⚡", use_container_width=True):
         st.switch_page("pages/2_Risk_Analysis.py")
+
+with col3:
+    st.markdown("""
+    <div class="card">
+        <div>
+            <div class="icon">🤒</div>
+            <div class="card-title">Symptom Checker</div>
+            <div class="card-desc">
+                Describe your symptoms to get a preliminary diagnosis and 
+                detailed medical explanation using BioMistral + GPT-4o.
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    if st.button("Check Symptoms 🔍", use_container_width=True):
+        st.switch_page("pages/3_Symptom_Checker.py")
 
 # Footer
 st.markdown("---")
