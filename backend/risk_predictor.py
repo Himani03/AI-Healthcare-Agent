@@ -1,8 +1,11 @@
 import os
+import re
 from gradio_client import Client
 from dotenv import load_dotenv
 from config import RAG_CONFIG
 from rag.retriever import RAGRetriever
+from backend.metrics import metrics_tracker
+import time
 
 load_dotenv()
 
@@ -27,7 +30,6 @@ class RiskPredictor:
             print("✅ Connected to Space!")
         except Exception as e:
             print(f"❌ Error connecting to Space: {e}")
-            # Don't raise here, allow retry in predict
 
     def _load_rag(self):
         """Load RAG components"""
@@ -38,29 +40,145 @@ class RiskPredictor:
         except Exception as e:
             print(f"❌ Error loading RAG: {e}")
 
+    def _check_vitals(self, vitals):
+        """Generate accurate vital signs assessment (Matching hamsa new logic)"""
+        checks = []
+        status = []
+        
+        # HR
+        hr = float(vitals.get('heartrate', 80))
+        if hr < 60:
+            checks.append(f"Heart Rate {hr} bpm is BELOW normal range (bradycardia)")
+            status.append(f"ABNORMAL VITALS: Bradycardia (HR {hr})")
+        elif hr > 100:
+            checks.append(f"Heart Rate {hr} bpm is ABOVE normal range (tachycardia)")
+            status.append(f"ABNORMAL VITALS: Tachycardia (HR {hr})")
+        else:
+            checks.append(f"Heart Rate {hr} bpm is within normal range (60-100)")
+
+        # BP
+        sbp = float(vitals.get('sbp', 120))
+        dbp = float(vitals.get('dbp', 80))
+        if sbp < 90 or dbp < 60:
+            checks.append(f"BP {sbp}/{dbp} mmHg is BELOW normal range (hypotension)")
+            status.append(f"CRITICAL: Hypotension ({sbp}/{dbp})")
+        elif sbp > 140 or dbp > 90:
+            checks.append(f"BP {sbp}/{dbp} mmHg is ABOVE normal range (hypertension)")
+            status.append(f"ABNORMAL VITALS: Hypertension ({sbp}/{dbp})")
+        else:
+            checks.append(f"BP {sbp}/{dbp} mmHg is within normal range")
+
+        # O2
+        o2 = float(vitals.get('o2sat', 98))
+        if o2 < 95:
+            checks.append(f"O2 Saturation {o2}% is BELOW normal range (hypoxia)")
+            status.append(f"CRITICAL: Hypoxia (O2 {o2}%)")
+        else:
+            checks.append(f"O2 Saturation {o2}% is within normal range (>95%)")
+
+        # Temp
+        temp = float(vitals.get('temperature', 98.6))
+        if temp > 100.4:
+            checks.append(f"Temperature {temp} F is ABOVE normal range (fever)")
+            status.append(f"ABNORMAL VITALS: Fever ({temp} F)")
+        elif temp < 95:
+            checks.append(f"Temperature {temp} F is BELOW normal range (hypothermia)")
+            status.append(f"CRITICAL: Hypothermia ({temp} F)")
+        else:
+            checks.append(f"Temperature {temp} F is within normal range")
+
+        # RR
+        rr = float(vitals.get('resprate', 16))
+        if rr > 20:
+            checks.append(f"Respiratory Rate {rr}/min is ABOVE normal range (tachypnea)")
+            status.append(f"ABNORMAL VITALS: Tachypnea (RR {rr})")
+        elif rr < 12:
+            checks.append(f"Respiratory Rate {rr}/min is BELOW normal range (bradypnea)")
+            status.append(f"ABNORMAL VITALS: Bradypnea (RR {rr})")
+        else:
+            checks.append(f"Respiratory Rate {rr}/min is within normal range")
+
+        return "\n".join(checks), "\n".join(status)
+
+    def _construct_prompt(self, complaint, vitals):
+        """Construct strict prompt with vital checks"""
+        vitals_context, vitals_status = self._check_vitals(vitals)
+        
+        return f"""[INST] You are an expert emergency physician. Analyze this patient case strictly following the rules.
+
+PATIENT DATA:
+Complaint: {complaint}
+Vitals: Temperature={vitals.get('temperature')}F, Heart Rate={vitals.get('heartrate')}bpm, Respiratory Rate={vitals.get('resprate')}/min, O2 Saturation={vitals.get('o2sat')}%, Blood Pressure={vitals.get('sbp')}/{vitals.get('dbp')}mmHg, Pain={vitals.get('pain')}/10
+
+ACCURATE VITAL SIGNS ASSESSMENT:
+{vitals_context}
+
+CRITICAL ALERTS:
+{vitals_status}
+
+STRICT RULES (MUST FOLLOW):
+1. NEVER mention age, gender, or demographics (FORBIDDEN: elderly, male, female, he, she, his, her, man, woman, boy, girl, old, young)
+2. ONLY use "the patient" or "they/their/them"
+3. Start reasoning: "The patient presents with [complaint]."
+4. Use the ACCURATE VITAL SIGNS ASSESSMENT above - do NOT reinterpret the values
+5. If a vital says "within normal range" - it IS normal, do NOT call it abnormal
+6. Do NOT mention: history, past conditions, previous episodes
+7. Do NOT list tests in reasoning section
+8. Risk probability: HIGH=70-95%, MEDIUM=40-60%, LOW=5-30%
+
+EXAMPLE (CORRECT):
+"The patient presents with chest pain. Temperature 98F is within normal range. Heart rate 110 bpm is above normal range indicating tachycardia..."
+
+FORMAT:
+RISK_LEVEL: [High/Medium/Low]
+PROBABILITY: [5-95]%
+REASONING: [Use the vital signs assessment provided, do not reinterpret]
+TESTS: [Test 1, Test 2, Test 3]
+
+[/INST]"""
+
+    def _format_rag_context(self, similar_cases):
+        """Format RAG results as HTML for frontend"""
+        if not similar_cases:
+            return "<em>No similar cases found.</em>"
+            
+        html = "<div style='font-size: 0.9rem;'>"
+        for i, case in enumerate(similar_cases[:3]):
+            # Parse citation
+            complaint = case.get('question', 'N/A').replace("Complaint:", "").strip()
+            details = case.get('answer', 'N/A')
+            
+            # Clean HTML construction (single line to avoid indentation issues)
+            html += f"<div style='margin-bottom: 10px; padding: 8px; background-color: #f8f9fa; border-left: 3px solid #1f77b4; border-radius: 4px;'><strong>Case {i+1}:</strong> {complaint}<br><span style='color: #666; font-size: 0.8rem;'>{details[:100]}...</span></div>"
+            
+        html += "</div>"
+        return html
+
     def predict(self, complaint, vitals):
         """Generate risk prediction using HF Space"""
-        # 1. Get Similar Cases
-        similar_cases = self._get_similar_cases(complaint)
+        start_time = time.time()
+        success = False
+        error_msg = None
         
-        # 3. Generate via Space
+        # 1. Get Similar Cases (RAG)
+        similar_cases = self._get_similar_cases(complaint)
+        rag_html = self._format_rag_context(similar_cases)
+        
         try:
             if not self.client:
                 self._connect_to_space()
-                
-            # 2. Construct Prompt (Re-introducing RAG with Chain-of-Thought)
-            # We will INJECT this prompt into the 'complaint' field of the Space
-            # to force it to follow our logic.
-            prompt = self._construct_prompt(complaint, vitals, similar_cases)
             
-            print("🧠 Sending request to Space (Prompt Injection)...")
+            # Check if connection was successful
+            if not self.client:
+                raise ConnectionError("Could not connect to Hugging Face Space. Please try again later.")
+
+            # 2. Construct Prompt (Legacy - Not used for Space inference to preserve RAG quality)
+            # prompt = self._construct_prompt(complaint, vitals)
+            print("🧠 Sending request to Space (Normal Input)...")
             
-            # The Space expects separate arguments.
-            # We hijack the 'complaint' argument to send our full prompt.
-            # We still send the vitals so the Space doesn't use defaults (just in case).
-            
+            # 3. Call Space
             result = self.client.predict(
-                prompt, # INJECTED PROMPT
+                complaint, # NORMAL INPUT (Fixes RAG)
                 float(vitals.get('temperature', 98.6)),
                 float(vitals.get('heartrate', 80)),
                 float(vitals.get('resprate', 16)),
@@ -71,137 +189,63 @@ class RiskPredictor:
                 api_name="/predict" 
             )
             
-            # Result is a tuple from the Gradio Space
-            # (Risk HTML, Confidence, Reasoning, Tests, Similar Cases)
-            print(f"✅ Space Response: {result}")
-            
-            # Parse Tuple Output
-            risk_html = result[0]  # e.g. <div...>✅ LOW RISK</div> or 🚨 HIGH RISK
+            # 4. Parse Output
+            # Space returns: (Risk HTML, Probability, Reasoning, Tests, RAG HTML)
+            risk_html = result[0]
+            probability = result[1]
             reasoning = result[2]
             tests_str = result[3]
-            similar_cases_str = result[4] 
+            rag_html_space = result[4]
             
-            # Extract Risk from HTML
-            import re
-            risk_match = re.search(r'✅ (.*?)<', risk_html)
-            if not risk_match:
-                risk_match = re.search(r'⚠️ (.*?)<', risk_html)
-            if not risk_match:
-                risk_match = re.search(r'🚨 (.*?)<', risk_html) # Handle High Risk icon
-            risk = risk_match.group(1) if risk_match else "Unknown"
+            print(f"🔍 RAW MODEL OUTPUT:\nRisk: {risk_html}\nProb: {probability}\nReasoning: {reasoning}\nTests: {tests_str}\n{'='*50}") 
+            
+            # Extract Risk Level from HTML
+            risk_val = "Unknown"
+            clean_html = re.sub(r'<[^>]+>', '', risk_html).strip()
+            if "HIGH" in clean_html.upper():
+                risk_val = "High Risk"
+            elif "MEDIUM" in clean_html.upper():
+                risk_val = "Medium Risk"
+            elif "LOW" in clean_html.upper():
+                risk_val = "Low Risk"
+            else:
+                risk_val = clean_html
             
             # Parse Tests
-            tests = [t.strip() for t in tests_str.split(',')]
+            if isinstance(tests_str, str):
+                tests = [t.strip() for t in tests_str.split(',')]
+            else:
+                tests = []
+
+            # Format Space's RAG HTML (Convert Markdown bold to HTML bold)
+            if rag_html_space:
+                rag_html = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', rag_html_space)
+            else:
+                rag_html = "<em>No similar cases found.</em>"
             
+            success = True
             return {
-                "risk": risk,
+                "risk": risk_val,
+                "probability": probability,
                 "reasoning": reasoning,
                 "tests": tests,
-                "similar_cases": similar_cases # Use our local RAG citations
+                "rag_html": rag_html 
             }
             
         except Exception as e:
             print(f"❌ Space Inference Error: {e}")
-            raise e
-
-    def _construct_prompt(self, complaint, vitals, similar_cases):
-        """Create the prompt for the model"""
-        
-        # Format similar cases for context
-        context_str = ""
-        if similar_cases:
-            context_str = "REFERENCE CASES (Historical Data - NOT the current patient):\n"
-            for i, case in enumerate(similar_cases[:3]): # Top 3
-                # EXTRACT ONLY COMPLAINT AND ACUITY. DO NOT SHOW VITALS OF PAST CASES.
-                # case is a dict: {'question': 'Complaint: ...', 'answer': 'Acuity: ... | Vitals: ...'}
-                
-                # Parse the complaint
-                complaint_part = case.get('question', 'N/A')
-                
-                # Parse the acuity (remove vitals)
-                answer_part = case.get('answer', '')
-                if '|' in answer_part:
-                    acuity_part = answer_part.split('|')[0].strip() # Keep only "Acuity: X"
-                else:
-                    acuity_part = answer_part
-                
-                context_str += f"- Case {i+1}: {complaint_part} -> {acuity_part}\n"
-        
-        return f"""
-        [INST] You are an expert emergency physician. Follow the examples below to analyze the patient.
-        
-        === EXAMPLE 1 (Normal Vitals) ===
-        Patient Data:
-        - Complaint: Headache
-        - Vitals: Temp:98.6F, HR:75, RR:16, BP:120/80
-        Reasoning: Patient has HR of 75 (Normal) and BP of 120/80 (Normal). No signs of distress. Headache is likely benign.
-        Risk: LOW RISK
-        
-        === EXAMPLE 2 (Abnormal Vitals) ===
-        Patient Data:
-        - Complaint: Chest pain
-        - Vitals: Temp:98.6F, HR:120, RR:24, BP:85/50
-        Reasoning: Patient has HR of 120 (Tachycardia) and BP of 85/50 (Hypotension). This indicates shock. High risk of sepsis or MI.
-        Risk: HIGH RISK
-        
-        ============================================================
-        
-        === HISTORICAL CONTEXT (For Reference Only) ===
-        {context_str}
-        ================================================
-        
-        === TARGET PATIENT (Analyze THIS person) ===
-        - Complaint: {complaint}
-        - Vitals: 
-          * Temp: {vitals.get('temperature')} F
-          * HR: {vitals.get('heartrate')} bpm
-          * RR: {vitals.get('resprate')} /min
-          * O2 Sat: {vitals.get('o2sat')} %
-          * BP: {vitals.get('sbp')}/{vitals.get('dbp')} mmHg
-          * Pain: {vitals.get('pain')}/10
-        ============================================
-        
-        Task:
-        1. Risk Level (High/Low)
-        2. Reasoning (3 sentences). START by explicitly stating the patient's vitals and whether they are NORMAL or ABNORMAL.
-        3. 3 Diagnostic Tests
-        
-        Format:
-        Risk: [Level]
-        Reasoning: [Text]
-        Tests: [List]
-        [/INST]
-        """
-
-    def _parse_response(self, text):
-        """Parse the generated text to extract structured data"""
-        risk = "Unknown"
-        reasoning = "Could not parse reasoning."
-        tests = []
-        
-        # Clean up text (remove prompt)
-        if "[/INST]" in text:
-            output = text.split("[/INST]")[1].strip()
-        else:
-            output = text.strip()
-            
-        lines = output.split('\n')
-        for line in lines:
-            line = line.strip()
-            if line.lower().startswith("risk:"):
-                risk = line.split(":", 1)[1].strip()
-            elif line.lower().startswith("reasoning:"):
-                reasoning = line.split(":", 1)[1].strip()
-            elif line.lower().startswith("tests:"):
-                tests_str = line.split(":", 1)[1].strip()
-                tests = [t.strip() for t in tests_str.split(',')]
-                
-        return {
-            "risk": risk,
-            "reasoning": reasoning,
-            "tests": tests,
-            "raw_output": output
-        }
+            success = False
+            error_msg = str(e)
+            return {
+                "risk": "Error",
+                "probability": "N/A",
+                "reasoning": f"Error during inference: {str(e)}",
+                "tests": [],
+                "rag_html": rag_html
+            }
+        finally:
+            duration = time.time() - start_time
+            metrics_tracker.log_inference("Risk Analysis", duration, success, error_msg)
 
     def _get_similar_cases(self, complaint):
         """Retrieve similar cases using RAG"""

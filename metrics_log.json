@@ -1,0 +1,30 @@
+[
+    {
+        "timestamp": "2025-12-03T13:30:02.738122",
+        "module": "Medical Chatbot",
+        "duration": 11.2249,
+        "success": true,
+        "error": null
+    },
+    {
+        "timestamp": "2025-12-03T13:30:23.605556",
+        "module": "Medical Chatbot",
+        "duration": 11.083,
+        "success": true,
+        "error": null
+    },
+    {
+        "timestamp": "2025-12-03T13:33:47.589532",
+        "module": "Symptom Checker",
+        "duration": 11.1698,
+        "success": true,
+        "error": null
+    },
+    {
+        "timestamp": "2025-12-03T13:34:42.222356",
+        "module": "Risk Analysis",
+        "duration": 15.1802,
+        "success": true,
+        "error": null
+    }
+]

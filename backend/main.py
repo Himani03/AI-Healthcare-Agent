@@ -15,6 +15,7 @@ from modules.shared.models import ModelManager
 from rag.retriever import RAGRetriever
 from backend.risk_predictor import get_risk_predictor
 from backend.symptom_predictor import get_symptom_predictor
+from backend.metrics import metrics_tracker
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -159,12 +160,18 @@ async def chat(request: ChatRequest):
     
     # Calculate latency
     latency_ms = (time.time() - start_time) * 1000
+    duration_sec = time.time() - start_time
     
     # Add medical disclaimer
     answer = result['answer']
     if not result.get('error'):
         answer += "\n\n⚠️ Medical Disclaimer: This information is for educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment."
     
+    # Log metrics
+    success = not result.get('error', False)
+    error_msg = result.get('error_msg') if not success else None
+    metrics_tracker.log_inference("Medical Chatbot", duration_sec, success, error_msg)
+
     return ChatResponse(
         answer=answer,
         model=result['model'],

@@ -1,144 +1,218 @@
 import streamlit as st
 from streamlit.components.v1 import html
+import base64
+import os
+
+# Function to load image as base64
+def get_img_as_base64(file_path):
+    with open(file_path, "rb") as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
+# Load Images
+try:
+    img_main = get_img_as_base64("frontend/assets/logo_main.jpg")
+    img_chatbot = get_img_as_base64("frontend/assets/logo_chatbot.jpg")
+    img_risk = get_img_as_base64("frontend/assets/logo_risk.jpg")
+    img_symptom = get_img_as_base64("frontend/assets/logo_symptom.jpg")
+    img_summarizer = get_img_as_base64("frontend/assets/logo_summarizer.jpg")
+except Exception as e:
+    st.error(f"Error loading images: {e}")
+    img_main = ""
+    img_chatbot = ""
+    img_risk = ""
+    img_symptom = ""
+    img_summarizer = ""
 
 # Page config
 st.set_page_config(
-    page_title="GenMedX: AI Healthcare Agent",
-    page_icon="🏥",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+    page_title="GenMedX",
+    page_icon=None,
+    layout="wide"
 )
 
-# Custom CSS
-st.markdown("""
+# Custom CSS - Dark Professional Theme
+st.markdown(f"""
 <style>
-    .main-header {
-        font-size: 3rem;
-        font-weight: 700;
-        color: #1f77b4;
+    /* Global Styles */
+    .main {{
+        background-color: #0e1117;
+    }}
+    h1, h2, h3 {{
+        color: #ecf0f1 !important;
+        font-family: 'Inter', sans-serif;
+    }}
+    p, div {{
+        color: #bdc3c7;
+        font-family: 'Inter', sans-serif;
+    }}
+    
+    /* Header */
+    .main-header {{
         text-align: center;
         margin-bottom: 1rem;
-    }
-    .sub-header {
-        font-size: 1.5rem;
-        color: #666;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }}
+    .logo-container {{
+        background-color: white;
+        padding: 10px 20px;
+        border-radius: 12px;
+        display: inline-block;
+        margin-bottom: 15px;
+        box-shadow: 0 0 20px rgba(255,255,255,0.1);
+    }}
+    .sub-header {{
+        font-size: 1.1rem;
+        color: #95a5a6;
         text-align: center;
         margin-bottom: 3rem;
-    }
-    .card {
-        background-color: white;
+        font-weight: 300;
+        letter-spacing: 0.5px;
+    }}
+    
+    /* Cards */
+    .card {{
+        background-color: #1e2530;
         padding: 2rem;
-        border-radius: 10px;
-        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        border: 1px solid #2c3e50;
         text-align: center;
-        transition: transform 0.2s;
+        transition: all 0.3s ease;
         height: 100%;
-        min-height: 350px; /* Enforce equal height */
+        min-height: 320px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         align-items: center;
-    }
-    .card:hover {
+    }}
+    .card:hover {{
         transform: translateY(-5px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border-color: #1f77b4;
-    }
-    .icon {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-    }
-    .card-title {
-        font-size: 1.5rem;
+        border-color: #3498db;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }}
+    .card-img {{
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        margin-bottom: 1.5rem;
+        border-radius: 8px;
+    }}
+    .card-title {{
+        font-size: 1.3rem;
         font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 1rem;
-    }
-    .card-desc {
-        color: #7f8c8d;
-        margin-bottom: 2rem;
-        font-size: 1rem;
+        color: #ecf0f1;
+        margin-bottom: 0.8rem;
+    }}
+    .card-desc {{
+        color: #95a5a6;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
         line-height: 1.5;
-    }
-    .stButton>button {
+    }}
+    
+    /* Buttons */
+    .stButton>button {{
         width: 100%;
-        background-color: #1f77b4;
+        background-color: #3498db;
         color: white;
         border: none;
         padding: 0.6rem 1rem;
-        border-radius: 5px;
-        font-weight: 600;
-        font-size: 1.1rem;
-        margin-top: auto; /* Push to bottom */
-    }
-    .stButton>button:hover {
-        background-color: #155a8a;
-    }
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 1rem;
+        margin-top: auto;
+        transition: background-color 0.2s;
+    }}
+    .stButton>button:hover {{
+        background-color: #2980b9;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
-# Header
-st.markdown('<h1 class="main-header">🏥 GenMedX</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-header">Advanced Medical AI for Diagnosis & Risk Prediction</p>', unsafe_allow_html=True)
+# Header with Logo
+st.markdown(f"""
+<div class="main-header">
+    <div class="logo-container">
+        <img src="data:image/jpeg;base64,{img_main}" style="height: 60px;">
+    </div>
+</div>
+<p class="sub-header">Advanced Medical AI for Diagnosis & Risk Prediction</p>
+""", unsafe_allow_html=True)
 
 # Navigation Cards
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.markdown("""
+    st.markdown(f"""
     <div class="card">
         <div>
-            <div class="icon">💬</div>
-            <div class="card-title">Medical Chatbot</div>
-            <div class="card-desc">
-                Interactive Q&A with 4 state-of-the-art LLMs (Llama 3, BioMistral, etc.) 
-                enhanced by RAG for accurate medical information.
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    if st.button("Launch Chatbot 🚀", use_container_width=True):
-        st.switch_page("pages/1_Medical_Chatbot.py")
-
-with col2:
-    st.markdown("""
-    <div class="card">
-        <div>
-            <div class="icon">🩺</div>
+            <img src="data:image/jpeg;base64,{img_risk}" class="card-img">
             <div class="card-title">Risk Analysis</div>
             <div class="card-desc">
-                AI-powered triage and risk prediction using BioMistral-7B. 
-                Get clinical reasoning and test recommendations.
+                Triage and risk prediction using patient vitals.
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
     
-    if st.button("Start Analysis ⚡", use_container_width=True):
-        st.switch_page("pages/2_Risk_Analysis.py")
+    if st.button("Start Analysis", use_container_width=True):
+        st.switch_page("pages/1_Risk_Analysis.py")
 
-with col3:
-    st.markdown("""
+with col2:
+    st.markdown(f"""
     <div class="card">
         <div>
-            <div class="icon">🤒</div>
+            <img src="data:image/jpeg;base64,{img_symptom}" class="card-img">
             <div class="card-title">Symptom Checker</div>
             <div class="card-desc">
-                Describe your symptoms to get a preliminary diagnosis and 
-                detailed medical explanation using BioMistral + GPT-4o.
+                Preliminary diagnosis from symptoms.
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
     
-    if st.button("Check Symptoms 🔍", use_container_width=True):
-        st.switch_page("pages/3_Symptom_Checker.py")
+    if st.button("Check Symptoms", use_container_width=True):
+        st.switch_page("pages/2_Symptom_Checker.py")
+
+with col3:
+    st.markdown(f"""
+    <div class="card">
+        <div>
+            <img src="data:image/jpeg;base64,{img_summarizer}" class="card-img">
+            <div class="card-title">Stay Summarizer</div>
+            <div class="card-desc">
+                Automated patient discharge summaries.
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    if st.button("Summarize Stay", use_container_width=True):
+        st.switch_page("pages/3_Stay_Summarizer.py")
+
+with col4:
+    st.markdown(f"""
+    <div class="card">
+        <div>
+            <img src="data:image/jpeg;base64,{img_chatbot}" class="card-img">
+            <div class="card-title">Medical Chatbot</div>
+            <div class="card-desc">
+                AI-powered medical Q&A with RAG.
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    if st.button("Launch Chatbot", use_container_width=True):
+        st.switch_page("pages/4_Medical_Chatbot.py")
 
 # Footer
 st.markdown("---")
 st.markdown("""
-<div style="text-align: center; color: #95a5a6; padding: 2rem;">
-    <p>Powered by GenMedX • BioMistral • Llama 3 </p>
+<div style="text-align: center; color: #57606f; padding: 2rem; font-size: 0.8rem;">
+    Powered by GenMedX • BioMistral • Llama 3
 </div>
 """, unsafe_allow_html=True)
