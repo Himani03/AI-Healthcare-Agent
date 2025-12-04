@@ -14,20 +14,36 @@ load_dotenv()
 
 # Google AI (for Gemini 1.5 Flash)
 # Get from: https://makersuite.google.com/app/apikey
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+import streamlit as st
+
+# Helper to get secret/env var
+def get_secret(key, default=""):
+    # 1. Try Streamlit Secrets
+    if hasattr(st, "secrets") and key in st.secrets:
+        return st.secrets[key]
+    # 2. Try Environment Variable
+    return os.getenv(key, default)
+
+# ============================================
+# API KEYS - ADD YOUR KEYS HERE
+# ============================================
+
+# Google AI (for Gemini 1.5 Flash)
+# Get from: https://makersuite.google.com/app/apikey
+GOOGLE_API_KEY = get_secret("GOOGLE_API_KEY")
 
 # Replicate (for Llama, BioMistral, Meditron)
 # Get from: https://replicate.com/account/api-tokens
-REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN", "")
+REPLICATE_API_TOKEN = get_secret("REPLICATE_API_TOKEN")
 
 # Qdrant Cloud (Vector Database)
 # Get from: https://cloud.qdrant.io
-QDRANT_URL = os.getenv("QDRANT_URL", "")
-QDRANT_API_KEY = os.getenv("QDRANT_API_KEY", "")
+QDRANT_URL = get_secret("QDRANT_URL")
+QDRANT_API_KEY = get_secret("QDRANT_API_KEY")
 
 # OpenAI (for RAGAS evaluation)
 # Get from: https://platform.openai.com/api-keys
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_API_KEY = get_secret("OPENAI_API_KEY")
 
 # ============================================
 # MODEL CONFIGURATIONS
