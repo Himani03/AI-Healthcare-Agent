@@ -152,19 +152,30 @@ if prompt := st.chat_input("Ask a medical question..."):
                     st.session_state.rag_retriever = RAGRetriever()
                 
                 # 1. Retrieve Context
+                start_time = time.time()
                 context = ""
                 citations = []
+                
                 if use_rag:
-                    context, results = st.session_state.rag_retriever.retrieve(prompt)
-                    citations = st.session_state.rag_retriever.get_citations(results)
+                    with st.spinner("🔍 Searching medical database..."):
+                        context, results = st.session_state.rag_retriever.retrieve(prompt)
+                        citations = st.session_state.rag_retriever.get_citations(results)
+                
+                rag_time = time.time() - start_time
                 
                 # 2. Generate Answer
-                result = st.session_state.model_manager.generate(
-                    model_name=model,
-                    question=prompt,
-                    context=context,
-                    use_rag=use_rag
-                )
+                with st.spinner("🧠 Consulting AI model..."):
+                    gen_start = time.time()
+                    result = st.session_state.model_manager.generate(
+                        model_name=model,
+                        question=prompt,
+                        context=context,
+                        use_rag=use_rag
+                    )
+                    gen_time = time.time() - gen_start
+                
+                # Display timing debug (small text)
+                st.caption(f"⏱️ Search: {rag_time:.2f}s | Generation: {gen_time:.2f}s")
                 
                 if not result.get('error'):
                     answer = result['answer']
