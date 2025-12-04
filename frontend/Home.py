@@ -146,16 +146,6 @@ st.markdown(f"""
 <p class="sub-header">Advanced Medical AI for Diagnosis & Risk Prediction</p>
 """, unsafe_allow_html=True)
 
-# Header with Logo
-st.markdown(f"""
-<div class="main-header">
-    <div class="logo-container">
-        <img src="data:image/jpeg;base64,{img_main}" style="height: 60px;">
-    </div>
-</div>
-<p class="sub-header">Advanced Medical AI for Diagnosis & Risk Prediction</p>
-""", unsafe_allow_html=True)
-
 # Navigation Cards
 col1, col2, col3, col4 = st.columns(4)
 
