@@ -2,6 +2,10 @@ import streamlit as st
 from streamlit.components.v1 import html
 import base64
 import os
+import sys
+
+# Add root directory to path to allow importing config
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Function to load image as base64
 def get_img_as_base64(file_path):
