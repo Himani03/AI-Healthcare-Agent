@@ -90,6 +90,26 @@ with st.sidebar:
     use_rag = st.toggle("Enable Medical Knowledge (RAG)", value=True)
     
     st.markdown("---")
+    
+    # RAG Debug Info
+    with st.expander("🔍 RAG System Status"):
+        if 'rag_retriever' in st.session_state:
+            retriever = st.session_state.rag_retriever
+            if retriever.client:
+                st.success(f"✅ Qdrant Connected")
+                try:
+                    # Check collection info
+                    count = retriever.client.count(collection_name=retriever.collection_name).count
+                    st.info(f"📚 Documents: {count}")
+                    if count == 0:
+                        st.warning("⚠️ Collection is empty! Run ingestion.")
+                except Exception as e:
+                    st.error(f"❌ Collection Error: {str(e)}")
+            else:
+                st.error("❌ Qdrant Client Not Initialized")
+        else:
+            st.warning("⚠️ Retriever not loaded yet")
+
     if st.button("Clear Chat History", use_container_width=True):
         st.session_state.messages = []
         st.rerun()

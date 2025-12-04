@@ -3,6 +3,7 @@ RAG Retriever: Handles vector search and context retrieval
 """
 from qdrant_client import QdrantClient
 from sentence_transformers import SentenceTransformer
+import streamlit as st
 import sys
 import os
 
@@ -18,9 +19,25 @@ class RAGRetriever:
         print("🔍 Initializing RAG Retriever...")
         
         # Connect to Qdrant
-        if QDRANT_URL and QDRANT_API_KEY:
-            self.client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
-            print(f"   ✅ Connected to Qdrant")
+        # Runtime fallback for Streamlit Cloud secrets
+        url = QDRANT_URL
+        key = QDRANT_API_KEY
+        
+        if hasattr(st, "secrets"):
+            if not url and "QDRANT_URL" in st.secrets:
+                url = st.secrets["QDRANT_URL"]
+                print("   ✅ Found Qdrant URL in st.secrets")
+            if not key and "QDRANT_API_KEY" in st.secrets:
+                key = st.secrets["QDRANT_API_KEY"]
+                print("   ✅ Found Qdrant Key in st.secrets")
+
+        if url and key:
+            try:
+                self.client = QdrantClient(url=url, api_key=key)
+                print(f"   ✅ Connected to Qdrant")
+            except Exception as e:
+                self.client = None
+                print(f"   ⚠️  Qdrant connection failed: {e}")
         else:
             self.client = None
             print("   ⚠️  Qdrant not configured")
