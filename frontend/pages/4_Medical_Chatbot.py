@@ -145,11 +145,22 @@ if prompt := st.chat_input("Ask a medical question..."):
         
         try:
             with st.spinner("Analyzing medical knowledge base..."):
-                # Initialize components if needed
+                # Initialize components with caching to speed up re-runs
+                @st.cache_resource
+                def get_cached_manager():
+                    return ModelManager()
+                
+                @st.cache_resource
+                def get_cached_retriever():
+                    return RAGRetriever()
+
                 if 'model_manager' not in st.session_state:
-                    st.session_state.model_manager = ModelManager()
+                    st.session_state.model_manager = get_cached_manager()
                 if 'rag_retriever' not in st.session_state:
-                    st.session_state.rag_retriever = RAGRetriever()
+                    st.session_state.rag_retriever = get_cached_retriever()
+                
+                # Cold Boot Warning
+                st.info("ℹ️ Note: If this is your first request in a while, the AI model may take 1-2 minutes to 'wake up'. Please be patient!")
                 
                 # 1. Retrieve Context
                 start_time = time.time()
