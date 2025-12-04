@@ -142,6 +142,21 @@ st.markdown(f"""
 <p class="sub-header">Advanced Medical AI for Diagnosis & Risk Prediction</p>
 """, unsafe_allow_html=True)
 
+# System Status (Debug)
+import config
+with st.expander("🔌 System Status & API Keys"):
+    st.write("Checking API Key Availability:")
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.write(f"**Google API:** {'✅ Connected' if config.GOOGLE_API_KEY else '❌ Missing'}")
+        st.write(f"**Replicate API:** {'✅ Connected' if config.REPLICATE_API_TOKEN else '❌ Missing'}")
+    with col_b:
+        st.write(f"**Qdrant URL:** {'✅ Connected' if config.QDRANT_URL else '❌ Missing'}")
+        st.write(f"**Qdrant Key:** {'✅ Connected' if config.QDRANT_API_KEY else '❌ Missing'}")
+    
+    if not config.REPLICATE_API_TOKEN:
+        st.error("Replicate Token is missing! Please check Streamlit Secrets.")
+
 # Navigation Cards
 col1, col2, col3, col4 = st.columns(4)
 
