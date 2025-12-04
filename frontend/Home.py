@@ -162,6 +162,17 @@ with st.expander("🔌 System Status & API Keys"):
     
     if not config.REPLICATE_API_TOKEN:
         st.error("Replicate Token is missing! Please check Streamlit Secrets.")
+        
+        # Debug: Show what keys ARE available
+        if hasattr(st, "secrets"):
+            st.write("---")
+            st.write("**Debug Info: Available Secrets Keys**")
+            found_keys = [k for k in st.secrets.keys() if not k.startswith("_")]
+            if found_keys:
+                for k in found_keys:
+                    st.code(f"{k} = ...")
+            else:
+                st.warning("No secrets found in st.secrets!")
     else:
         st.info(f"Replicate Token detected. Length: {len(config.REPLICATE_API_TOKEN)}")
 
