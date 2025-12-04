@@ -4,6 +4,7 @@ Handles Gemini, Llama, BioMistral, and Meditron
 """
 import google.generativeai as genai
 import replicate
+import streamlit as st
 import sys
 import os
 
@@ -34,10 +35,15 @@ class ModelManager:
             print("   ⚠️  Gemini not configured (missing API key)")
         
         # Configure Replicate
-        # Configure Replicate
-        if REPLICATE_API_TOKEN:
+        # Try to get token from config or st.secrets (runtime)
+        api_token = REPLICATE_API_TOKEN
+        if not api_token and hasattr(st, "secrets") and "REPLICATE_API_TOKEN" in st.secrets:
+            api_token = st.secrets["REPLICATE_API_TOKEN"]
+            print("   ✅ Found Replicate token in st.secrets")
+
+        if api_token:
             try:
-                self.replicate_client = replicate.Client(api_token=REPLICATE_API_TOKEN)
+                self.replicate_client = replicate.Client(api_token=api_token)
                 print("   ✅ Replicate configured")
                 print("   ✅ Llama 3.1 8B ready")
                 print("   ✅ BioMistral 7B ready")
