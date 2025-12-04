@@ -91,25 +91,6 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # RAG Debug Info
-    with st.expander("🔍 RAG System Status"):
-        if 'rag_retriever' in st.session_state:
-            retriever = st.session_state.rag_retriever
-            if retriever.client:
-                st.success(f"✅ Qdrant Connected")
-                try:
-                    # Check collection info
-                    count = retriever.client.count(collection_name=retriever.collection_name).count
-                    st.info(f"📚 Documents: {count}")
-                    if count == 0:
-                        st.warning("⚠️ Collection is empty! Run ingestion.")
-                except Exception as e:
-                    st.error(f"❌ Collection Error: {str(e)}")
-            else:
-                st.error("❌ Qdrant Client Not Initialized")
-        else:
-            st.warning("⚠️ Retriever not loaded yet")
-
     if st.button("Clear Chat History", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
@@ -159,23 +140,20 @@ if prompt := st.chat_input("Ask a medical question..."):
                 if 'rag_retriever' not in st.session_state:
                     st.session_state.rag_retriever = get_cached_retriever()
                 
-                # Cold Boot Warning
-                st.info("ℹ️ Note: If this is your first request in a while, the AI model may take 1-2 minutes to 'wake up'. Please be patient!")
-                
                 # 1. Retrieve Context
                 start_time = time.time()
                 context = ""
                 citations = []
                 
                 if use_rag:
-                    with st.spinner("🔍 Searching medical database..."):
+                    with st.spinner("Searching medical database..."):
                         context, results = st.session_state.rag_retriever.retrieve(prompt)
                         citations = st.session_state.rag_retriever.get_citations(results)
                 
                 rag_time = time.time() - start_time
                 
                 # 2. Generate Answer
-                with st.spinner("🧠 Consulting AI model..."):
+                with st.spinner("Consulting AI model..."):
                     gen_start = time.time()
                     result = st.session_state.model_manager.generate(
                         model_name=model,
@@ -186,7 +164,7 @@ if prompt := st.chat_input("Ask a medical question..."):
                     gen_time = time.time() - gen_start
                 
                 # Display timing debug (small text)
-                st.caption(f"⏱️ Search: {rag_time:.2f}s | Generation: {gen_time:.2f}s")
+                st.caption(f"Search: {rag_time:.2f}s | Generation: {gen_time:.2f}s")
                 
                 if not result.get('error'):
                     answer = result['answer']

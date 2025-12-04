@@ -146,39 +146,15 @@ st.markdown(f"""
 <p class="sub-header">Advanced Medical AI for Diagnosis & Risk Prediction</p>
 """, unsafe_allow_html=True)
 
-# System Status (Debug)
-import config
-with st.expander("🔌 System Status & API Keys"):
-    st.write("Checking API Key Availability:")
-    col_a, col_b = st.columns(2)
-    
-    def get_status(key_value):
-        if key_value:
-            return f"✅ Connected ({str(key_value)[:4]}...)"
-        return "❌ Missing"
-
-    with col_a:
-        st.write(f"**Google API:** {get_status(config.GOOGLE_API_KEY)}")
-        st.write(f"**Replicate API:** {get_status(config.REPLICATE_API_TOKEN)}")
-    with col_b:
-        st.write(f"**Qdrant URL:** {get_status(config.QDRANT_URL)}")
-        st.write(f"**Qdrant Key:** {get_status(config.QDRANT_API_KEY)}")
-    
-    if not config.REPLICATE_API_TOKEN:
-        st.error("Replicate Token is missing! Please check Streamlit Secrets.")
-        
-        # Debug: Show what keys ARE available
-        if hasattr(st, "secrets"):
-            st.write("---")
-            st.write("**Debug Info: Available Secrets Keys**")
-            found_keys = [k for k in st.secrets.keys() if not k.startswith("_")]
-            if found_keys:
-                for k in found_keys:
-                    st.code(f"{k} = ...")
-            else:
-                st.warning("No secrets found in st.secrets!")
-    else:
-        st.info(f"Replicate Token detected. Length: {len(config.REPLICATE_API_TOKEN)}")
+# Header with Logo
+st.markdown(f"""
+<div class="main-header">
+    <div class="logo-container">
+        <img src="data:image/jpeg;base64,{img_main}" style="height: 60px;">
+    </div>
+</div>
+<p class="sub-header">Advanced Medical AI for Diagnosis & Risk Prediction</p>
+""", unsafe_allow_html=True)
 
 # Navigation Cards
 col1, col2, col3, col4 = st.columns(4)
