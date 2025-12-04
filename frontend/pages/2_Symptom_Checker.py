@@ -9,6 +9,7 @@ import backend.metrics
 import importlib
 importlib.reload(backend.metrics)
 from backend.metrics import metrics_tracker
+from backend.symptom_predictor import get_symptom_predictor
 
 # Page config
 st.set_page_config(
@@ -130,24 +131,21 @@ with st.form("diagnosis_form"):
 if submit and symptoms:
     with st.spinner("Analyzing symptoms..."):
         try:
-            response = requests.post(
-                f"{API_URL}/symptom_predict",
-                json={"symptoms": symptoms},
-                timeout=300
-            )
+            # Initialize predictor if needed
+            if 'symptom_predictor' not in st.session_state:
+                st.session_state.symptom_predictor = get_symptom_predictor()
             
-            if response.status_code == 200:
-                st.session_state.symptom_result = response.json()
-                st.session_state.feedback_submitted_symptom = False # Reset feedback
+            # Direct call instead of API
+            result = st.session_state.symptom_predictor.predict(symptoms)
+            
+            if "error" in result:
+                 st.error(f"Error: {result['error']}")
             else:
-                error_detail = response.json().get('detail', response.text)
-                if "PAUSED" in str(error_detail) or "timed out" in str(error_detail):
-                     st.warning("The AI Model is waking up. Please wait 1-2 minutes and try again.")
-                else:
-                    st.error(f"Error: {error_detail}")
+                st.session_state.symptom_result = result
+                st.session_state.feedback_submitted_symptom = False # Reset feedback
                 
         except Exception as e:
-            st.error(f"Connection Error: {e}")
+            st.error(f"Analysis Error: {e}")
 
 elif submit and not symptoms:
     st.warning("Please enter symptoms to proceed.")

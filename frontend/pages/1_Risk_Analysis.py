@@ -10,6 +10,7 @@ import backend.metrics
 import importlib
 importlib.reload(backend.metrics)
 from backend.metrics import metrics_tracker
+from backend.risk_predictor import get_risk_predictor
 
 # Page config
 st.set_page_config(
@@ -166,31 +167,29 @@ with col2:
     if submit and complaint:
         with st.spinner("Analyzing clinical data..."):
             try:
-                response = requests.post(
-                    f"{API_URL}/risk_predict",
-                    json={
-                        "complaint": complaint,
-                        "vitals": {
-                            "temperature": temp,
-                            "heartrate": hr,
-                            "resprate": rr,
-                            "o2sat": o2,
-                            "sbp": sbp,
-                            "dbp": dbp,
-                            "pain": pain
-                        }
-                    },
-                    timeout=300
+                # Initialize predictor if needed
+                if 'risk_predictor' not in st.session_state:
+                    st.session_state.risk_predictor = get_risk_predictor()
+                
+                # Direct call instead of API
+                result = st.session_state.risk_predictor.predict(
+                    complaint,
+                    {
+                        "temperature": temp,
+                        "heartrate": hr,
+                        "resprate": rr,
+                        "o2sat": o2,
+                        "sbp": sbp,
+                        "dbp": dbp,
+                        "pain": pain
+                    }
                 )
                 
-                if response.status_code == 200:
-                    st.session_state.risk_result = response.json()
-                    st.session_state.feedback_submitted_risk = False # Reset feedback
-                else:
-                    st.error(f"Error: {response.text}")
+                st.session_state.risk_result = result
+                st.session_state.feedback_submitted_risk = False # Reset feedback
                     
             except Exception as e:
-                st.error(f"Connection Error: {e}")
+                st.error(f"Analysis Error: {e}")
     
     elif submit and not complaint:
         st.warning("Please enter a chief complaint.")

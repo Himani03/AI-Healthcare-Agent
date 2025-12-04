@@ -10,6 +10,8 @@ import backend.metrics
 import importlib
 importlib.reload(backend.metrics)
 from backend.metrics import metrics_tracker
+from modules.shared.models import ModelManager
+from rag.retriever import RAGRetriever
 
 # Page config
 st.set_page_config(
@@ -123,20 +125,29 @@ if prompt := st.chat_input("Ask a medical question..."):
         
         try:
             with st.spinner("Analyzing medical knowledge base..."):
-                response = requests.post(
-                    f"{API_URL}/chat",
-                    json={
-                        "question": prompt,
-                        "model": model,
-                        "use_rag": use_rag
-                    },
-                    timeout=120
+                # Initialize components if needed
+                if 'model_manager' not in st.session_state:
+                    st.session_state.model_manager = ModelManager()
+                if 'rag_retriever' not in st.session_state:
+                    st.session_state.rag_retriever = RAGRetriever()
+                
+                # 1. Retrieve Context
+                context = ""
+                citations = []
+                if use_rag:
+                    context, results = st.session_state.rag_retriever.retrieve(prompt)
+                    citations = st.session_state.rag_retriever.get_citations(results)
+                
+                # 2. Generate Answer
+                result = st.session_state.model_manager.generate(
+                    model_name=model,
+                    question=prompt,
+                    context=context,
+                    use_rag=use_rag
                 )
                 
-                if response.status_code == 200:
-                    data = response.json()
-                    answer = data['answer']
-                    citations = data.get('citations', [])
+                if not result.get('error'):
+                    answer = result['answer']
                     
                     # Format answer
                     full_response = answer
@@ -153,9 +164,14 @@ if prompt := st.chat_input("Ask a medical question..."):
                     
                     # Add to history
                     st.session_state.messages.append({"role": "assistant", "content": full_response})
+                    
+                    # Log metrics
+                    metrics_tracker.log_inference("Medical Chatbot", 0.0, True, None) # Duration not tracked in this simplified view
                 else:
-                    error_msg = f"Error: {response.status_code} - {response.text}"
+                    error_msg = f"Error: {result.get('answer', 'Unknown error')}"
                     message_placeholder.error(error_msg)
+                    metrics_tracker.log_inference("Medical Chatbot", 0.0, False, error_msg)
+
         except Exception as e:
             message_placeholder.error(f"Connection Error: {str(e)}")
 
