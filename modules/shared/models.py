@@ -34,13 +34,19 @@ class ModelManager:
             print("   ⚠️  Gemini not configured (missing API key)")
         
         # Configure Replicate
+        # Configure Replicate
         if REPLICATE_API_TOKEN:
-            os.environ["REPLICATE_API_TOKEN"] = REPLICATE_API_TOKEN
-            print("   ✅ Replicate configured")
-            print("   ✅ Llama 3.1 8B ready")
-            print("   ✅ BioMistral 7B ready")
-            print("   ✅ Meditron 7B ready")
+            try:
+                self.replicate_client = replicate.Client(api_token=REPLICATE_API_TOKEN)
+                print("   ✅ Replicate configured")
+                print("   ✅ Llama 3.1 8B ready")
+                print("   ✅ BioMistral 7B ready")
+                print("   ✅ Meditron 7B ready")
+            except Exception as e:
+                self.replicate_client = None
+                print(f"   ⚠️  Replicate configuration failed: {e}")
         else:
+            self.replicate_client = None
             print("   ⚠️  Replicate not configured (missing API token)")
     
     def generate(self, model_name, question, context="", use_rag=True):
@@ -123,11 +129,14 @@ class ModelManager:
     
     def _generate_llama(self, prompt, question):
         """Generate from Llama 3 8B"""
+        if not self.replicate_client:
+            return {"answer": "Replicate not configured", "model": "llama", "error": True}
+
         try:
             # Use specific version if available
             model_id = f"{MODELS['llama']['model_id']}:{MODELS['llama']['version']}" if 'version' in MODELS['llama'] else MODELS['llama']['model_id']
             
-            output = replicate.run(
+            output = self.replicate_client.run(
                 model_id,
                 input={
                     "prompt": prompt,
@@ -155,10 +164,13 @@ class ModelManager:
     
     def _generate_biomistral(self, prompt, question):
         """Generate from Mistral 7B"""
+        if not self.replicate_client:
+            return {"answer": "Replicate not configured", "model": "biomistral", "error": True}
+
         try:
             model_id = f"{MODELS['biomistral']['model_id']}:{MODELS['biomistral']['version']}" if 'version' in MODELS['biomistral'] else MODELS['biomistral']['model_id']
             
-            output = replicate.run(
+            output = self.replicate_client.run(
                 model_id,
                 input={
                     "prompt": prompt,
@@ -185,10 +197,13 @@ class ModelManager:
     
     def _generate_meditron(self, prompt, question):
         """Generate from Llama 3 70B"""
+        if not self.replicate_client:
+            return {"answer": "Replicate not configured", "model": "meditron", "error": True}
+
         try:
             model_id = f"{MODELS['meditron']['model_id']}:{MODELS['meditron']['version']}" if 'version' in MODELS['meditron'] else MODELS['meditron']['model_id']
             
-            output = replicate.run(
+            output = self.replicate_client.run(
                 model_id,
                 input={
                     "prompt": prompt,
