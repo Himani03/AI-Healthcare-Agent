@@ -42,6 +42,8 @@ class ModelManager:
             print("   ✅ Found Replicate token in st.secrets")
 
         if api_token:
+            # Sanitize token (remove newlines/spaces from copy-paste)
+            api_token = api_token.strip()
             try:
                 self.replicate_client = replicate.Client(api_token=api_token)
                 print("   ✅ Replicate configured")
@@ -162,8 +164,10 @@ class ModelManager:
                 "error": False
             }
         except Exception as e:
+            # Debug info for auth errors
+            token_debug = f"{self.replicate_client.api_token[:4]}..." if self.replicate_client.api_token else "None"
             return {
-                "answer": f"Error: {str(e)}",
+                "answer": f"Error: {str(e)} (Token: {token_debug})",
                 "model": "llama",
                 "error": True
             }
