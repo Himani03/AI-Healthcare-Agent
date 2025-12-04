@@ -1,0 +1,11 @@
+torch
+transformers
+accelerate
+bitsandbytes
+peft
+gradio>=3.50.0
+scipy
+sentence-transformers
+pandas
+numpy
+scikit-learn

@@ -1,6 +1,15 @@
 import streamlit as st
 import requests
 import time
+import sys
+import os
+
+# Add root directory to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+import backend.metrics
+import importlib
+importlib.reload(backend.metrics)
+from backend.metrics import metrics_tracker
 
 # Page config
 st.set_page_config(
@@ -96,6 +105,8 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"], unsafe_allow_html=True)
 
+
+
 # Chat Input
 if prompt := st.chat_input("Ask a medical question..."):
     # Add user message to chat history
@@ -147,6 +158,32 @@ if prompt := st.chat_input("Ask a medical question..."):
                     message_placeholder.error(error_msg)
         except Exception as e:
             message_placeholder.error(f"Connection Error: {str(e)}")
+
+# Feedback for the last assistant message
+if st.session_state.messages and st.session_state.messages[-1]["role"] == "assistant":
+    # Initialize feedback state for the current message count (unique ID per response)
+    msg_count = len(st.session_state.messages)
+    feedback_key = f"feedback_submitted_chat_{msg_count}"
+    
+    if feedback_key not in st.session_state:
+        st.session_state[feedback_key] = False
+
+    st.markdown("### Rate the last response")
+    
+    if not st.session_state[feedback_key]:
+        col_up, col_down = st.columns([1, 10])
+        with col_up:
+            if st.button("Helpful", key=f"like_chat_{msg_count}"):
+                metrics_tracker.log_feedback("Medical Chatbot", True)
+                st.session_state[feedback_key] = True
+                st.rerun()
+        with col_down:
+            if st.button("Not Helpful", key=f"dislike_chat_{msg_count}"):
+                metrics_tracker.log_feedback("Medical Chatbot", False)
+                st.session_state[feedback_key] = True
+                st.rerun()
+    else:
+        st.info("Thanks for your feedback!")
 
 # Footer Disclaimer
 st.markdown("""

@@ -101,10 +101,26 @@ if df.empty:
     st.info("No performance data available yet. Run some predictions in the Risk Analysis or Symptom Checker modules to see metrics here!")
 else:
     # --- TOP LEVEL METRICS ---
-    total_requests = len(df)
-    avg_latency = df['duration'].mean()
-    error_count = df[df['success'] == False].shape[0]
-    error_rate = (error_count / total_requests) * 100
+    # Filter for inference events for operational metrics
+    if 'type' in df.columns:
+        inference_df = df[df['type'] != 'feedback']
+    else:
+        inference_df = df
+        
+    total_requests = len(inference_df)
+    avg_latency = inference_df['duration'].mean() if not inference_df.empty else 0
+    error_count = inference_df[inference_df['success'] == False].shape[0]
+    error_rate = (error_count / total_requests) * 100 if total_requests > 0 else 0
+    
+    # Calculate Satisfaction
+    satisfaction_score = "No Data"
+    if 'type' in df.columns and 'feedback' in df.columns:
+        feedback_df = df[df['type'] == 'feedback']
+        if not feedback_df.empty:
+            positive_count = feedback_df[feedback_df['feedback'] == 'positive'].shape[0]
+            total_feedback = len(feedback_df)
+            score = (positive_count / total_feedback) * 100
+            satisfaction_score = f"{score:.0f}%"
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -114,7 +130,7 @@ else:
     with col3:
         st.metric("Error Rate", f"{error_rate:.1f}%")
     with col4:
-        st.metric("Active Modules", df['module'].nunique())
+        st.metric("User Satisfaction", satisfaction_score)
 
     st.markdown("---")
 
@@ -249,13 +265,17 @@ with tab4:
 with tab5:
     st.markdown("""
     ### Automated Stay Summarizer Pipeline
-    *Currently under development.*
+    A specialized Seq2Seq pipeline for generating concise hospital stay summaries.
     
-    This module will utilize Large Language Models to process and summarize patient stay records.
-    
-    1.  **Input**: Patient discharge notes, daily nursing logs, and vital sign history.
-    2.  **Processing**: 
-        *   **Context Windowing**: Handling long documents via chunking or large-context models.
-        *   **Extraction**: Identifying key clinical events, medication changes, and vital trends.
-    3.  **Generation**: Producing a concise, structured summary for medical handoffs.
+    1.  **Input Methods**: 
+        *   **CSV Lookup**: Retrieves structured patient history (Vitals, Labs, Diagnosis) from a local dataset.
+        *   **Manual Entry**: Allows real-time input of patient parameters via a dynamic form.
+    2.  **Serialization**: 
+        *   Converts structured data into a linear text format optimized for the model.
+        *   *Format*: `DATE: ... | COMPLAINT: ... | VITALS: ... | DIAGNOSES: ...`
+    3.  **Inference (Fine-Tuned T5)**:
+        *   **Model**: `kushbindal/genmedx-t5-small` (Hugging Face).
+        *   **Fine-Tuning**: Trained on MIMIC-IV discharge summaries to learn medical summarization patterns.
+        *   **Logic**: Uses a "Diagnosis Patch" to ensure critical diagnoses are never omitted from the summary.
+    4.  **Output**: A professional, paragraph-style summary ready for medical handoffs.
     """)

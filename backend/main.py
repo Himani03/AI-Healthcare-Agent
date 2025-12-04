@@ -164,8 +164,7 @@ async def chat(request: ChatRequest):
     
     # Add medical disclaimer
     answer = result['answer']
-    if not result.get('error'):
-        answer += "\n\n⚠️ Medical Disclaimer: This information is for educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment."
+    # Disclaimer removed (handled by frontend footer)
     
     # Log metrics
     success = not result.get('error', False)

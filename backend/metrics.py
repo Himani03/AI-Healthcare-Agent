@@ -23,9 +23,23 @@ class MetricsTracker:
             "module": module_name,
             "duration": round(duration_seconds, 4),
             "success": success,
-            "error": str(error_msg) if error_msg else None
+            "error": str(error_msg) if error_msg else None,
+            "type": "inference"  # Distinguish from feedback
         }
-        
+        self._append_event(event)
+
+    def log_feedback(self, module_name, is_positive: bool):
+        """Log user feedback (thumbs up/down)"""
+        event = {
+            "timestamp": datetime.now().isoformat(),
+            "module": module_name,
+            "feedback": "positive" if is_positive else "negative",
+            "type": "feedback"
+        }
+        self._append_event(event)
+
+    def _append_event(self, event):
+        """Helper to append event to JSON file"""
         try:
             with open(self.file_path, 'r+') as f:
                 try:

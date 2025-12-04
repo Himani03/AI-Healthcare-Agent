@@ -26,5 +26,262 @@
         "duration": 15.1802,
         "success": true,
         "error": null
+    },
+    {
+        "timestamp": "2025-12-03T16:06:23.892817",
+        "module": "Risk Analysis",
+        "duration": 6.6446,
+        "success": false,
+        "error": "The read operation timed out"
+    },
+    {
+        "timestamp": "2025-12-03T17:07:17.827545",
+        "module": "Medical Chatbot",
+        "duration": 12.2675,
+        "success": true,
+        "error": null
+    },
+    {
+        "timestamp": "2025-12-03T17:14:03.830329",
+        "module": "Medical Chatbot",
+        "duration": 3.7656,
+        "success": true,
+        "error": null
+    },
+    {
+        "timestamp": "2025-12-03T17:15:48.999321",
+        "module": "Medical Chatbot",
+        "duration": 4.7334,
+        "success": true,
+        "error": null
+    },
+    {
+        "timestamp": "2025-12-03T17:15:52.084844",
+        "module": "Medical Chatbot",
+        "duration": 0.5903,
+        "success": false,
+        "error": null
+    },
+    {
+        "timestamp": "2025-12-03T17:17:12.525310",
+        "module": "Medical Chatbot",
+        "duration": 5.76,
+        "success": true,
+        "error": null
+    },
+    {
+        "timestamp": "2025-12-03T18:45:41.928836",
+        "module": "Risk Analysis",
+        "duration": 6.2714,
+        "success": false,
+        "error": "The read operation timed out"
+    },
+    {
+        "timestamp": "2025-12-03T18:51:51.175053",
+        "module": "Risk Analysis",
+        "duration": 6.0413,
+        "success": false,
+        "error": "The read operation timed out"
+    },
+    {
+        "timestamp": "2025-12-04T00:23:53.625562",
+        "module": "Stay Summarizer",
+        "duration": 3.5704,
+        "success": true,
+        "error": null
+    },
+    {
+        "timestamp": "2025-12-04T00:24:07.409972",
+        "module": "Stay Summarizer",
+        "duration": 4.0602,
+        "success": true,
+        "error": null
+    },
+    {
+        "timestamp": "2025-12-04T00:28:54.215460",
+        "module": "Risk Analysis",
+        "duration": 0.9607,
+        "success": false,
+        "error": "Could not connect to Hugging Face Space. Please try again later.",
+        "type": "inference"
+    },
+    {
+        "timestamp": "2025-12-04T00:29:29.850473",
+        "module": "Medical Chatbot",
+        "duration": 6.1942,
+        "success": true,
+        "error": null,
+        "type": "inference"
+    },
+    {
+        "timestamp": "2025-12-04T00:30:22.727483",
+        "module": "Medical Chatbot",
+        "duration": 7.7633,
+        "success": true,
+        "error": null,
+        "type": "inference"
+    },
+    {
+        "timestamp": "2025-12-04T00:33:16.931726",
+        "module": "Medical Chatbot",
+        "duration": 6.071,
+        "success": true,
+        "error": null,
+        "type": "inference"
+    },
+    {
+        "timestamp": "2025-12-04T00:33:41.326316",
+        "module": "Stay Summarizer",
+        "duration": 4.2218,
+        "success": true,
+        "error": null
+    },
+    {
+        "timestamp": "2025-12-04T00:34:48.325426",
+        "module": "Stay Summarizer",
+        "feedback": "positive",
+        "type": "feedback"
+    },
+    {
+        "timestamp": "2025-12-04T00:34:56.403547",
+        "module": "Medical Chatbot",
+        "feedback": "positive",
+        "type": "feedback"
+    },
+    {
+        "timestamp": "2025-12-04T00:35:28.833450",
+        "module": "Symptom Checker",
+        "duration": 11.0179,
+        "success": true,
+        "error": null,
+        "type": "inference"
+    },
+    {
+        "timestamp": "2025-12-04T00:37:20.850185",
+        "module": "Medical Chatbot",
+        "feedback": "positive",
+        "type": "feedback"
+    },
+    {
+        "timestamp": "2025-12-04T00:37:24.613845",
+        "module": "Medical Chatbot",
+        "feedback": "positive",
+        "type": "feedback"
+    },
+    {
+        "timestamp": "2025-12-04T00:37:36.489432",
+        "module": "Medical Chatbot",
+        "feedback": "negative",
+        "type": "feedback"
+    },
+    {
+        "timestamp": "2025-12-04T00:37:37.516920",
+        "module": "Medical Chatbot",
+        "feedback": "negative",
+        "type": "feedback"
+    },
+    {
+        "timestamp": "2025-12-04T00:39:35.448821",
+        "module": "Stay Summarizer",
+        "feedback": "positive",
+        "type": "feedback"
+    },
+    {
+        "timestamp": "2025-12-04T00:39:45.078107",
+        "module": "Stay Summarizer",
+        "duration": 4.2463,
+        "success": true,
+        "error": null,
+        "type": "inference"
+    },
+    {
+        "timestamp": "2025-12-04T00:39:47.190909",
+        "module": "Stay Summarizer",
+        "feedback": "positive",
+        "type": "feedback"
+    },
+    {
+        "timestamp": "2025-12-04T00:42:56.856606",
+        "module": "Stay Summarizer",
+        "duration": 3.9101,
+        "success": true,
+        "error": null,
+        "type": "inference"
+    },
+    {
+        "timestamp": "2025-12-04T00:42:58.960906",
+        "module": "Stay Summarizer",
+        "feedback": "positive",
+        "type": "feedback"
+    },
+    {
+        "timestamp": "2025-12-04T00:43:40.250681",
+        "module": "Medical Chatbot",
+        "duration": 5.188,
+        "success": true,
+        "error": null,
+        "type": "inference"
+    },
+    {
+        "timestamp": "2025-12-04T00:46:16.260894",
+        "module": "Medical Chatbot",
+        "feedback": "positive",
+        "type": "feedback"
+    },
+    {
+        "timestamp": "2025-12-04T00:49:42.836196",
+        "module": "Medical Chatbot",
+        "duration": 5.3716,
+        "success": true,
+        "error": null,
+        "type": "inference"
+    },
+    {
+        "timestamp": "2025-12-04T00:51:10.755354",
+        "module": "Stay Summarizer",
+        "duration": 3.9498,
+        "success": true,
+        "error": null,
+        "type": "inference"
+    },
+    {
+        "timestamp": "2025-12-04T00:51:12.899790",
+        "module": "Stay Summarizer",
+        "feedback": "positive",
+        "type": "feedback"
+    },
+    {
+        "timestamp": "2025-12-04T00:51:19.040894",
+        "module": "Medical Chatbot",
+        "feedback": "positive",
+        "type": "feedback"
+    },
+    {
+        "timestamp": "2025-12-04T00:53:12.469590",
+        "module": "Medical Chatbot",
+        "duration": 7.0116,
+        "success": true,
+        "error": null,
+        "type": "inference"
+    },
+    {
+        "timestamp": "2025-12-04T00:53:43.915981",
+        "module": "Medical Chatbot",
+        "feedback": "negative",
+        "type": "feedback"
+    },
+    {
+        "timestamp": "2025-12-04T00:55:17.898748",
+        "module": "Medical Chatbot",
+        "duration": 5.6777,
+        "success": true,
+        "error": null,
+        "type": "inference"
+    },
+    {
+        "timestamp": "2025-12-04T00:55:21.252112",
+        "module": "Medical Chatbot",
+        "feedback": "positive",
+        "type": "feedback"
     }
 ]

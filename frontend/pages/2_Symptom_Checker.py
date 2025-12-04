@@ -1,5 +1,14 @@
 import streamlit as st
 import requests
+import sys
+import os
+
+# Add root directory to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+import backend.metrics
+import importlib
+importlib.reload(backend.metrics)
+from backend.metrics import metrics_tracker
 
 # Page config
 st.set_page_config(
@@ -128,28 +137,8 @@ if submit and symptoms:
             )
             
             if response.status_code == 200:
-                data = response.json()
-                
-                diagnosis = data.get('diagnosis', 'Unknown')
-                confidence = data.get('confidence', '0%')
-                explanation = data.get('explanation', 'No explanation provided.')
-                
-                # Display Diagnosis
-                st.markdown(f"""
-                <div class="content-box" style="text-align: center; border-left: 5px solid #3498db;">
-                    <div class="diagnosis-title">{diagnosis}</div>
-                    <p class="confidence-text">Confidence: {confidence}</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Display Explanation
-                st.markdown(f"""
-                <div class="content-box">
-                    <div class="section-title">Medical Explanation</div>
-                    <div style="line-height: 1.6;">{explanation}</div>
-                </div>
-                """, unsafe_allow_html=True)
-                
+                st.session_state.symptom_result = response.json()
+                st.session_state.feedback_submitted_symptom = False # Reset feedback
             else:
                 error_detail = response.json().get('detail', response.text)
                 if "PAUSED" in str(error_detail) or "timed out" in str(error_detail):
@@ -162,6 +151,51 @@ if submit and symptoms:
 
 elif submit and not symptoms:
     st.warning("Please enter symptoms to proceed.")
+
+# Display Result from Session State
+if "symptom_result" in st.session_state and st.session_state.symptom_result:
+    data = st.session_state.symptom_result
+    
+    diagnosis = data.get('diagnosis', 'Unknown')
+    confidence = data.get('confidence', '0%')
+    explanation = data.get('explanation', 'No explanation provided.')
+    
+    # Display Diagnosis
+    st.markdown(f"""
+    <div class="content-box" style="text-align: center; border-left: 5px solid #3498db;">
+        <div class="diagnosis-title">{diagnosis}</div>
+        <p class="confidence-text">Confidence: {confidence}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Display Explanation
+    st.markdown(f"""
+    <div class="content-box">
+        <div class="section-title">Medical Explanation</div>
+        <div style="line-height: 1.6;">{explanation}</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Initialize feedback state
+    if "feedback_submitted_symptom" not in st.session_state:
+        st.session_state.feedback_submitted_symptom = False
+        
+    st.markdown("### Rate this diagnosis")
+    
+    if not st.session_state.feedback_submitted_symptom:
+        col_up, col_down = st.columns([1, 10])
+        with col_up:
+            if st.button("Helpful", key="like_symptom"):
+                metrics_tracker.log_feedback("Symptom Checker", True)
+                st.session_state.feedback_submitted_symptom = True
+                st.rerun()
+        with col_down:
+            if st.button("Not Helpful", key="dislike_symptom"):
+                metrics_tracker.log_feedback("Symptom Checker", False)
+                st.session_state.feedback_submitted_symptom = True
+                st.rerun()
+    else:
+        st.info("Thanks for your feedback!")
 
 # Footer
 st.markdown("""

@@ -1,6 +1,15 @@
 import streamlit as st
 import requests
 import json
+import sys
+import os
+
+# Add root directory to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+import backend.metrics
+import importlib
+importlib.reload(backend.metrics)
+from backend.metrics import metrics_tracker
 
 # Page config
 st.set_page_config(
@@ -112,6 +121,16 @@ st.markdown("""
     .stButton>button:hover {
         background-color: #2980b9;
     }
+    
+    /* Disclaimer */
+    .disclaimer {
+        font-size: 0.8rem;
+        color: #57606f;
+        margin-top: 3rem;
+        text-align: center;
+        border-top: 1px solid #2c3e50;
+        padding-top: 1rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -165,55 +184,8 @@ with col2:
                 )
                 
                 if response.status_code == 200:
-                    result = response.json()
-                    
-                    # Parse Result
-                    risk_level = result.get('risk', 'Unknown')
-                    probability = result.get('probability', 'N/A')
-                    reasoning = result.get('reasoning', 'No reasoning provided.')
-                    tests = result.get('tests', [])
-                    rag_html = result.get('rag_html', '')
-                    
-                    # Display Risk Badge
-                    badge_class = "risk-low"
-                    if "High" in risk_level:
-                        badge_class = "risk-high"
-                    elif "Medium" in risk_level:
-                        badge_class = "risk-medium"
-                        
-                    st.markdown(f"""
-                    <div class="risk-badge {badge_class}">
-                        <div class="risk-title">{risk_level}</div>
-                        <div class="risk-prob">Probability: {probability}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Display Reasoning
-                    st.markdown(f"""
-                    <div class="content-box">
-                        <div class="section-title">Clinical Reasoning</div>
-                        {reasoning}
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Display Tests
-                    if tests:
-                        tests_html = "".join([f"<li>{test}</li>" for test in tests])
-                        st.markdown(f"""
-                        <div class="content-box">
-                            <div class="section-title">Recommended Tests</div>
-                            <ul style="margin-bottom: 0;">{tests_html}</ul>
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
-                    # Display RAG Context
-                    st.markdown(f"""
-                    <div class="content-box">
-                        <div class="section-title">Similar Historical Cases</div>
-                        {rag_html}
-                    </div>
-                    """, unsafe_allow_html=True)
-                            
+                    st.session_state.risk_result = response.json()
+                    st.session_state.feedback_submitted_risk = False # Reset feedback
                 else:
                     st.error(f"Error: {response.text}")
                     
@@ -222,6 +194,86 @@ with col2:
     
     elif submit and not complaint:
         st.warning("Please enter a chief complaint.")
+
+    # Display Result from Session State
+    if "risk_result" in st.session_state and st.session_state.risk_result:
+        result = st.session_state.risk_result
+        
+        # Parse Result
+        risk_level = result.get('risk', 'Unknown')
+        probability = result.get('probability', 'N/A')
+        reasoning = result.get('reasoning', 'No reasoning provided.')
+        tests = result.get('tests', [])
+        rag_html = result.get('rag_html', '')
+        
+        # Display Risk Badge
+        badge_class = "risk-low"
+        if "High" in risk_level:
+            badge_class = "risk-high"
+        elif "Medium" in risk_level:
+            badge_class = "risk-medium"
+            
+        st.markdown(f"""
+        <div class="risk-badge {badge_class}">
+            <div class="risk-title">{risk_level}</div>
+            <div class="risk-prob">Probability: {probability}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Display Reasoning
+        st.markdown(f"""
+        <div class="content-box">
+            <div class="section-title">Clinical Reasoning</div>
+            {reasoning}
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Display Tests
+        if tests:
+            tests_html = "".join([f"<li>{test}</li>" for test in tests])
+            st.markdown(f"""
+            <div class="content-box">
+                <div class="section-title">Recommended Tests</div>
+                <ul style="margin-bottom: 0;">{tests_html}</ul>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        # Initialize feedback state
+        if "feedback_submitted_risk" not in st.session_state:
+            st.session_state.feedback_submitted_risk = False
+            
+        st.markdown("### Rate this analysis")
+        
+        if not st.session_state.feedback_submitted_risk:
+            col_up, col_down = st.columns([1, 10])
+            with col_up:
+                if st.button("Helpful", key="like_risk"):
+                    metrics_tracker.log_feedback("Risk Analysis", True)
+                    st.session_state.feedback_submitted_risk = True
+                    st.rerun()
+            with col_down:
+                if st.button("Not Helpful", key="dislike_risk"):
+                    metrics_tracker.log_feedback("Risk Analysis", False)
+                    st.session_state.feedback_submitted_risk = True
+                    st.rerun()
+        else:
+            st.info("Thanks for your feedback!")
+
+        # Display RAG Context
+        st.markdown(f"""
+        <div class="content-box">
+            <div class="section-title">Similar Historical Cases</div>
+            {rag_html}
+        </div>
+        """, unsafe_allow_html=True)
     
-    else:
+    elif not submit:
         st.info("Enter patient data to generate risk analysis.")
+
+# Footer Disclaimer
+st.markdown("""
+<div class="disclaimer">
+    <strong>Medical Disclaimer:</strong> This AI assistant is for educational purposes only. 
+    It is not a substitute for professional medical advice, diagnosis, or treatment.
+</div>
+""", unsafe_allow_html=True)

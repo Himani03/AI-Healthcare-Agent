@@ -101,7 +101,6 @@ IMPORTANT GUIDELINES:
 2. If the context doesn't contain the answer, say "I don't have enough information to answer that"
 3. Provide clear, patient-friendly explanations
 4. Include relevant citations from the context
-5. Always add a medical disclaimer
 
 Remember: This is for educational purposes only and not a substitute for professional medical advice."""
 
@@ -111,20 +110,13 @@ RAG_PROMPT_TEMPLATE = """Context from medical knowledge base:
 Question: {question}
 
 Instructions:
-- Provide a DETAILED EXPLANATION based on the context above
-- Explain in SIMPLE, EASY-TO-UNDERSTAND language for patients
-- Break down complex medical terms
-- Include relevant details like:
-  * What it is
-  * How it works
-  * Why it's used
-  * Common side effects (if applicable)
-  * Important considerations
-- Use the context to support your explanation
-- Cite sources when possible
-- Add a brief medical disclaimer at the end
+- Answer the question clearly and helpfully based on the context.
+- Provide a direct answer first, then explain the reasoning or details.
+- Include relevant medical context (e.g., potential causes, next steps) if available in the source.
+- Avoid generic filler, but ensure the answer is complete and informative.
+- Cite sources when possible.
 
-Provide a comprehensive, patient-friendly explanation:"""
+Answer:"""
 
 # ============================================
 # EVALUATION CONFIGURATION
