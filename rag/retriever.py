@@ -26,7 +26,8 @@ class RAGRetriever:
             print("   ⚠️  Qdrant not configured")
         
         # Load embedding model
-        self.encoder = SentenceTransformer(RAG_CONFIG['embedding_model'])
+        # Force CPU to avoid "meta tensor" errors on Streamlit Cloud with accelerate installed
+        self.encoder = SentenceTransformer(RAG_CONFIG['embedding_model'], device="cpu")
         print(f"   ✅ Loaded embedding model: {RAG_CONFIG['embedding_model']}")
         
         self.collection_name = collection_name or RAG_CONFIG['collection_name']
