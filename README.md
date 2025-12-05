@@ -2,6 +2,8 @@
 
 **Advanced Medical Q&A Chatbot & Intelligent Risk Analysis System**
 
+Google drive link for project artifacts: https://drive.google.com/drive/folders/18wEXAiZDkaYGKw7IlREjpuk_ZYZfYUxb 
+
 ---
 
 ## 📋 Executive Summary
