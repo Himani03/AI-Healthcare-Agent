@@ -230,8 +230,8 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs(["Unified Data Pipeline", "Chatbot Engine
 
 with tab1:
     st.markdown("""
-    ### Dual-Stream Data Processing
-    The system ingests data from two distinct sources to power its dual modules:
+    ### Multi-Stream Data Processing
+    The system ingests data from distinct sources to power its modules:
     
     **1. Medical Knowledge Base (for Chatbot)**
     *   **Sources**: MedQA-USMLE (11k pairs), PubMedQA.
@@ -244,14 +244,18 @@ with tab1:
     **3. Symptom-Disease Patterns (for Symptom Diagnosis)**
     *   **Sources**: 10 Common Disease Datasets (Symptom-Label pairs).
     *   **Process**: Fine-tuning BioMistral-7B (LoRA adapters).
-    *   **Storage**: Model Weights (Hugging Face Hub), not a Vector DB.
+    *   **Storage**: Model Weights (Hugging Face Hub).
+
+    **4. Clinical Summarization Data (for Stay Summarizer)**
+    *   **Sources**: MIMIC-IV Discharge Summaries.
+    *   **Process**: Fine-tuning T5-Small (Seq2Seq).
+    *   **Storage**: Model Weights (Hugging Face Hub).
     
     **Infrastructure**
     *   **Vector DB**: Qdrant Cloud (High-performance similarity search).
     *   **Model Hub**: Hugging Face (Storing fine-tuned adapters).
     *   **Embeddings**: `sentence-transformers/all-MiniLM-L6-v2` (384-d).
     """)
-    st.info("Status: Active | Collections: 2 | Total Vectors: ~12,500")
 
 with tab2:
     st.markdown("""
