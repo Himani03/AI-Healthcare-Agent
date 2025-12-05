@@ -196,7 +196,6 @@ st.markdown("---")
 st.header("System Architecture Context")
 
 # Architecture Diagram
-st.markdown("### High-Level Design")
 st.markdown("""
 ```mermaid
 graph TD
