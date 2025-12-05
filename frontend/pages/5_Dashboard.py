@@ -195,6 +195,37 @@ st.markdown("---")
 # ==========================================
 st.header("System Architecture Context")
 
+# Architecture Diagram
+st.markdown("### High-Level Design")
+st.markdown("""
+```mermaid
+graph TD
+    User([User]) <--> Frontend[Streamlit Frontend]
+    Frontend <-->|REST API (JSON)| Backend[FastAPI Backend]
+    
+    subgraph "Core Application"
+        Backend --> Router{API Router}
+        Router -->|/chat| ChatEngine[Chatbot Engine]
+        Router -->|/risk_predict| RiskEngine[Risk Analysis Engine]
+        Router -->|/symptom_predict| SymptomEngine[Symptom Diagnosis Engine]
+        Router -->|/summarize| StayEngine[Stay Summarizer Engine]
+    end
+    
+    subgraph "Data Layer"
+        ChatEngine <-->|Retrieve| Qdrant[Qdrant Vector DB]
+        RiskEngine <-->|Retrieve| Qdrant
+    end
+    
+    subgraph "Inference Layer (Cloud)"
+        ChatEngine -->|Generate| Replicate[Replicate (Llama 3)]
+        RiskEngine -->|Predict| HF_Space1[HF Space: BioMistral Adapter]
+        SymptomEngine -->|Classify| HF_Space2[HF Space: Symptom Model]
+        SymptomEngine -->|Explain| OpenAI[OpenAI (GPT-4o)]
+        StayEngine -->|Summarize| HF_Space3[HF Space: T5-Small]
+    end
+```
+""")
+
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["Unified Data Pipeline", "Chatbot Engine", "Risk Analysis Engine", "Symptom Diagnosis Engine", "Stay Summarizer"])
 
 with tab1:
