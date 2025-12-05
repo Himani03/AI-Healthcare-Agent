@@ -18,6 +18,7 @@ graph TD
         Router -->|/chat| ChatEngine[Chatbot Engine]
         Router -->|/risk_predict| RiskEngine[Risk Analysis Engine]
         Router -->|/symptom_predict| SymptomEngine[Symptom Diagnosis Engine]
+        Router -->|/summarize| StayEngine[Stay Summarizer Engine]
     end
     
     subgraph "Data Layer"
@@ -30,6 +31,7 @@ graph TD
         RiskEngine -->|Predict| HF_Space1[HF Space: BioMistral Adapter]
         SymptomEngine -->|Classify| HF_Space2[HF Space: Symptom Model]
         SymptomEngine -->|Explain| OpenAI[OpenAI (GPT-4o)]
+        StayEngine -->|Summarize| HF_Space3[HF Space: T5-Small]
     end
 ```
 
@@ -41,6 +43,7 @@ graph TD
     *   *Chat*: Llama 3-8B, BioMistral-7B, Gemini 1.5 Pro
     *   *Risk*: BioMistral-7B (Adapter)
     *   *Diagnosis*: BioMistral-7B (Fine-Tuned) + GPT-4o
+    *   *Summary*: T5-Small (Fine-Tuned)
 
 ---
 
