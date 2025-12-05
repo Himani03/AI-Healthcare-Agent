@@ -140,7 +140,7 @@ st.markdown(f"""
 st.markdown(f"""
 <div class="main-header">
     <div class="logo-container">
-        <img src="data:image/jpeg;base64,{img_main}" style="height: 60px;">
+        <img src="data:image/jpeg;base64,{img_main}" style="height: 120px;">
     </div>
 </div>
 <p class="sub-header">Advanced Medical AI for Diagnosis & Risk Prediction</p>
