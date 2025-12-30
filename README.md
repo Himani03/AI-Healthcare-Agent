@@ -95,7 +95,7 @@ To eliminate hallucinations (e.g., the model inventing a high heart rate), we by
 ```mermaid
 graph LR
     A[User Symptoms] --> B(Backend API)
-    B --> C{BioMistral-7B (Fine-Tuned)}
+    B --> C{"BioMistral-7B (Fine-Tuned)"}
     C -->|Predicted Diagnosis| D[GPT-4o]
     D -->|Generate Explanation| E[Final Output]
     E --> F[Frontend UI]
