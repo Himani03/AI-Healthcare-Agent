@@ -62,13 +62,7 @@ st.markdown("""
         color: #ecf0f1;
     }
     
-    /* Buttons */
-    .stButton>button {
-        background-color: #3498db;
-        color: white;
-        border: none;
-        border-radius: 6px;
-    }
+
     
     /* Tabs */
     .stTabs [data-baseweb="tab-list"] {

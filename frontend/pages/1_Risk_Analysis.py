@@ -108,20 +108,7 @@ st.markdown("""
         letter-spacing: 0.5px;
     }
     
-    /* Buttons */
-    .stButton>button {
-        width: 100%;
-        background-color: #3498db;
-        color: white;
-        border: none;
-        padding: 0.8rem;
-        border-radius: 6px;
-        font-weight: 600;
-        transition: background-color 0.2s;
-    }
-    .stButton>button:hover {
-        background-color: #2980b9;
-    }
+
     
     /* Disclaimer */
     .disclaimer {
@@ -244,7 +231,7 @@ with col2:
         st.markdown("### Rate this analysis")
         
         if not st.session_state.feedback_submitted_risk:
-            col_up, col_down = st.columns([1, 10])
+            col_up, col_down = st.columns([2, 8])
             with col_up:
                 if st.button("Helpful", key="like_risk"):
                     metrics_tracker.log_feedback("Risk Analysis", True)

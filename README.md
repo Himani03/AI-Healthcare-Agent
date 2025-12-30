@@ -8,13 +8,14 @@ Google drive link for project artifacts: https://drive.google.com/drive/folders/
 
 ## 📋 Executive Summary
 
-**GenMedX** is a comprehensive AI healthcare platform designed to democratize access to medical information and assist in preliminary patient triage. The system integrates **Retrieval-Augmented Generation (RAG)** across two core modules to ensure accuracy, reduce hallucinations, and provide grounded medical reasoning.
+**GenMedX** is a comprehensive AI healthcare platform designed to democratize access to medical information and assist in preliminary patient triage. The system integrates **Retrieval-Augmented Generation (RAG)** across its core modules to ensure accuracy, reduce hallucinations, and provide grounded medical reasoning.
 
 **Key Innovations:**
 *   **Multi-Model Comparison**: Evaluates 4 state-of-the-art LLMs (Gemini 1.5, Llama 3, BioMistral, Meditron) for medical accuracy.
 *   **"Verify First" Risk Engine**: A novel "Prompt Injection" architecture that forces the AI to verify patient vitals against normal ranges before generating a diagnosis.
 *   **Hybrid Symptom Checker**: Combines fine-tuned local models with GPT-4o for high-accuracy diagnosis and human-like explanations.
-*   **Dual-RAG Pipeline**: Combines local vector search (Qdrant) with cloud-based inference (Hugging Face Spaces & Replicate).
+*   **Automated Stay Summarizer**: Generates professional hospital discharge summaries using a fine-tuned T5 model.
+*   **Real-Time Analytics**: A live dashboard monitoring system performance, latency, and user satisfaction.
 
 ---
 
@@ -35,6 +36,8 @@ graph TD
         Backend -->|/chat| Mod1[Module 1: Chatbot]
         Backend -->|/risk_predict| Mod2[Module 2: Risk Analysis]
         Backend -->|/symptom_predict| Mod3[Module 3: Symptom Checker]
+        Backend -->|/summarize| Mod4[Module 4: Stay Summarizer]
+        Backend -->|/metrics| Mod5[Module 5: Dashboard]
     end
     
     subgraph Data & Models
@@ -46,6 +49,10 @@ graph TD
         
         Mod3 -->|Inference| HF_Space2[HF Space: Symptom Model]
         Mod3 -->|Explanation| GPT4[GPT-4o]
+
+        Mod4 -->|Inference| HF_Space3[HF Space: T5 Summarizer]
+        
+        Mod5 -->|Analytics| MetricsDB[Metrics Log]
     end
 ```
 
@@ -97,6 +104,20 @@ graph LR
 **Hybrid Pipeline:**
 *   **Phase 1 (Classification)**: Uses a fine-tuned BioMistral-7B model to classify symptoms into one of 10 common conditions (99.1% accuracy).
 *   **Phase 2 (Explanation)**: Uses GPT-4o to generate a clear, patient-friendly explanation of *why* those symptoms led to that diagnosis.
+
+### Module 4: Stay Summarizer
+*Goal: Automate the creation of hospital discharge summaries.*
+
+*   **Input**: Patient vitals, lab results, and diagnosis history (via CSV lookup or manual entry).
+*   **Model**: **T5-Small** fine-tuned on MIMIC-IV discharge summaries.
+*   **Key Feature**: "Diagnosis Patch" logic ensures critical conditions are never omitted from the final summary text.
+
+### Module 5: Analytics Dashboard
+*Goal: Monitor system health and user engagement in real-time.*
+
+*   **Metrics**: Inference latency, error rates, total request volume.
+*   **User Feedback**: Tracks "Helpful/Not Helpful" ratings for continuous improvement.
+*   **Tech**: Built with **Plotly** for interactive visualizations.
 
 ---
 
@@ -160,10 +181,15 @@ streamlit run frontend/Home.py
 AI Healthcare Agent/
 ├── backend/                 # FastAPI Application
 │   ├── main.py             # API Routes
-│   └── risk_predictor.py   # Risk Analysis Logic (HF Space Integration)
+│   └── risk_predictor.py   # Risk Analysis Logic
 ├── frontend/                # Streamlit UI
 │   ├── Home.py             # Landing Page
-│   └── pages/              # Chatbot & Risk Analysis Pages
+│   └── pages/              
+│       ├── 1_Risk_Analysis.py
+│       ├── 2_Symptom_Checker.py
+│       ├── 3_Stay_Summarizer.py
+│       ├── 4_Medical_Chatbot.py
+│       └── 5_Dashboard.py
 ├── modules/                 # Core Logic
 │   └── shared/             # Shared Models & Utilities
 ├── rag/                     # RAG Pipeline

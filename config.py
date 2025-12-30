@@ -19,8 +19,12 @@ import streamlit as st
 # Helper to get secret/env var
 def get_secret(key, default=""):
     # 1. Try Streamlit Secrets
-    if hasattr(st, "secrets") and key in st.secrets:
-        return st.secrets[key]
+    try:
+        if hasattr(st, "secrets") and key in st.secrets:
+            return st.secrets[key]
+    except Exception:
+        pass  # Fallback to env vars if secrets file is missing
+        
     # 2. Try Environment Variable
     return os.getenv(key, default)
 
@@ -130,7 +134,7 @@ Instructions:
 - Provide a direct answer first, then explain the reasoning or details.
 - Include relevant medical context (e.g., potential causes, next steps) if available in the source.
 - Avoid generic filler, but ensure the answer is complete and informative.
-- Cite sources when possible.
+- Do NOT cite sources in the text (e.g., [Source 1]). Just answer the question.
 
 Answer:"""
 

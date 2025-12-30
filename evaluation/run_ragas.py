@@ -21,7 +21,7 @@ from tqdm import tqdm
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.model_manager import ModelManager
+from modules.shared.models import ModelManager
 from rag.retriever import RAGRetriever
 from config import OPENAI_API_KEY
 

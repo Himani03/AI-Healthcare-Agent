@@ -217,6 +217,6 @@ with col4:
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #57606f; padding: 2rem; font-size: 0.8rem;">
-    Powered by GenMedX • BioMistral • Llama 3
+    Powered by GenMedX • BioMistral • Flan T5 • Meditron
 </div>
 """, unsafe_allow_html=True)

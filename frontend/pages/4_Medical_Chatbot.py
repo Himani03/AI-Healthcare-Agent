@@ -175,7 +175,7 @@ if prompt := st.chat_input("Ask a medical question..."):
                     # Add citations if available
                     if citations:
                         full_response += "\n\n**Sources:**"
-                        for i, cit in enumerate(citations[:3], 1):
+                        for i, cit in enumerate(citations[:5], 1):
                             source_text = f"\n> **[{i}] {cit['source']}**: {cit['answer'][:100]}..."
                             full_response += source_text
                     
@@ -207,7 +207,7 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "assis
     st.markdown("### Rate the last response")
     
     if not st.session_state[feedback_key]:
-        col_up, col_down = st.columns([1, 10])
+        col_up, col_down = st.columns([2, 8])
         with col_up:
             if st.button("Helpful", key=f"like_chat_{msg_count}"):
                 metrics_tracker.log_feedback("Medical Chatbot", True)
